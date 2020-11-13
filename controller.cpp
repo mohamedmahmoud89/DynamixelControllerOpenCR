@@ -74,13 +74,13 @@ void Controller::Update(const char cmd){
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
       case '+':
-          if((speed_factor+1)*speedIncrement<=maxSpeed) speed_factor++;
+          if((current_speed[0])&&(current_speed[0])&&((speed_factor+1)*speedIncrement<=maxSpeed)) speed_factor++;
           current_speed[0]=speed_factor*org_speed[0];
           current_speed[1]=speed_factor*org_speed[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
       case '-':
-          if(speed_factor>1) speed_factor--;
+          if((current_speed[0])&&(current_speed[0])&&(speed_factor>1)) speed_factor--;
           current_speed[0]=speed_factor*org_speed[0];
           current_speed[1]=speed_factor*org_speed[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);

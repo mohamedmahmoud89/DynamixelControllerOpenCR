@@ -40,10 +40,10 @@ void Controller::Update(const char cmd){
   const char* log=NULL;
   bool result=false;
   uint8_t ids[2]={1,2};
-  int32_t fwd_data[2]={maxSpeed,maxSpeed};
-  int32_t rev_data[2]={-maxSpeed,-maxSpeed};
-  int32_t turn_right_data[2]={maxSpeed,0};
-  int32_t turn_left_data[2]={0,maxSpeed};
+  int32_t fwd_data[2]={speedIncrement,speedIncrement};
+  int32_t rev_data[2]={-speedIncrement,-speedIncrement};
+  int32_t turn_right_data[2]={speedIncrement,0};
+  int32_t turn_left_data[2]={0,speedIncrement};
   int32_t org_speed[2]={current_speed[0]/speed_factor,current_speed[1]/speed_factor};
   
   switch(cmd){
@@ -53,7 +53,7 @@ void Controller::Update(const char cmd){
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
       case 's':
-          speed_factor=0;
+          speed_factor=1;
           current_speed[0]=0;
           current_speed[1]=0;
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
@@ -63,16 +63,26 @@ void Controller::Update(const char cmd){
           current_speed[1]=speed_factor*rev_data[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
+      case 'l':
+          current_speed[0]=speed_factor*turn_left_data[0];
+          current_speed[1]=speed_factor*turn_left_data[1];
+          result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
+          break;
       case 'r':
-          if((speed_factor+1)*speedIncrement<=maxSpeed) speed_factor++;
           current_speed[0]=speed_factor*turn_right_data[0];
           current_speed[1]=speed_factor*turn_right_data[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
-      case 'l':
+      case '+':
+          if((speed_factor+1)*speedIncrement<=maxSpeed) speed_factor++;
+          current_speed[0]=speed_factor*org_speed[0];
+          current_speed[1]=speed_factor*org_speed[1];
+          result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
+          break;
+      case '-':
           if(speed_factor>1) speed_factor--;
-          current_speed[0]=speed_factor*turn_left_data[0];
-          current_speed[1]=speed_factor*turn_left_data[1];
+          current_speed[0]=speed_factor*org_speed[0];
+          current_speed[1]=speed_factor*org_speed[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
       default:

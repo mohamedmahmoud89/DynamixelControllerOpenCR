@@ -4,6 +4,8 @@ void Controller::Init(){
   const char *log = NULL;
   bool result = false;
 
+  speed_factor=1;
+  
   result = dxl.init("", baudRate, &log);
   
   result=dxl.ping(1,&log);
@@ -22,7 +24,7 @@ void Controller::Init(){
   result = dxl.torqueOn(2, &log);
 }
 
-void Controller::Update(){
+void Controller::SendData(){
   const char* log=NULL;
   bool result=false;
   uint8_t ids[2]={1,2};
@@ -36,7 +38,21 @@ void Controller::Update(){
   Serial.println("r="+String(data_read[1]));
 }
 
-void Controller::Update(const char cmd){
+Controller::Command Controller::InterpretCmd(const String cmd){
+  if(cmd=="fwd")return FWD; 
+  if(cmd=="stop")return STOP; 
+  if(cmd=="bwd")return BWD; 
+  if(cmd=="left")return LEFT; 
+  if(cmd=="right")return RIGHT; 
+  if(cmd=="up")return UP; 
+  if(cmd=="down")return DOWN; 
+  if(cmd=="ping")return PING;
+  if(cmd=="query")return QUERY;
+  return NONE;
+; 
+}
+
+void Controller::ExecCmd(const Command cmd){
   const char* log=NULL;
   bool result=false;
   uint8_t ids[2]={1,2};
@@ -47,47 +63,71 @@ void Controller::Update(const char cmd){
   int32_t org_speed[2]={current_speed[0]/speed_factor,current_speed[1]/speed_factor};
   
   switch(cmd){
-      case 'f':
+      case FWD:
           current_speed[0]=speed_factor*fwd_data[0];
           current_speed[1]=speed_factor*fwd_data[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
-      case 's':
+      case STOP:
           speed_factor=1;
           current_speed[0]=0;
           current_speed[1]=0;
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
-      case 'b':
+      case BWD:
           current_speed[0]=speed_factor*rev_data[0];
           current_speed[1]=speed_factor*rev_data[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
-      case 'l':
+      case LEFT:
           current_speed[0]=speed_factor*turn_left_data[0];
           current_speed[1]=speed_factor*turn_left_data[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
-      case 'r':
+      case RIGHT:
           current_speed[0]=speed_factor*turn_right_data[0];
           current_speed[1]=speed_factor*turn_right_data[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
-      case '+':
+      case UP:
           if((current_speed[0])&&(current_speed[0])&&((speed_factor+1)*speedIncrement<=maxSpeed)) speed_factor++;
           current_speed[0]=speed_factor*org_speed[0];
           current_speed[1]=speed_factor*org_speed[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
-      case '-':
+      case DOWN:
           if((current_speed[0])&&(current_speed[0])&&(speed_factor>1)) speed_factor--;
           current_speed[0]=speed_factor*org_speed[0];
           current_speed[1]=speed_factor*org_speed[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
+      case QUERY:
+          SendData();
+          break;
       default:
           break;  
   }
+}
 
-  Update();
+String Controller::RecieveData(){
+  String cmd;
+  while(Serial.available()>0){
+    char data=char(Serial.read());
+    if(data=='#')
+      break;
+    cmd+=data;
+  }
+  return cmd;
+}
+
+void Controller::Update(){
+  if(Serial.available()>0){
+    String data=RecieveData();
+    Command cmd=InterpretCmd(data);
+    
+    if(cmd!=NONE){
+      ExecCmd(cmd); 
+      Serial.println("over");
+    }
+  }
 }

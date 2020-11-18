@@ -11,6 +11,6 @@ void loop() {
   // put your main code here, to run repeatedly:
   Serial.begin(57600);
   while(!Serial); // Wait for Opening Serial Monitor
-  Serial.available()>0?ctrl.Update(Serial.read()):ctrl.Update();
-  delay(50);
+  ctrl.Update();
+  delay(1); // sleep 1 ms simulating polling behavior
 }

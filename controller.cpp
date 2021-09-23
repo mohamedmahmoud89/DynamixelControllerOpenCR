@@ -58,8 +58,8 @@ void Controller::ExecCmd(const Command cmd){
   uint8_t ids[2]={1,2};
   int32_t fwd_data[2]={speedIncrement,speedIncrement};
   int32_t rev_data[2]={-speedIncrement,-speedIncrement};
-  int32_t turn_right_data[2]={speedIncrement,0};
-  int32_t turn_left_data[2]={0,speedIncrement};
+  int32_t turn_right_data[2]={speedIncrement,-speedIncrement};
+  int32_t turn_left_data[2]={-speedIncrement,speedIncrement};
   int32_t org_speed[2]={current_speed[0]/speed_factor,current_speed[1]/speed_factor};
   
   switch(cmd){

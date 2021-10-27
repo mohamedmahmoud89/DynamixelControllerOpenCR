@@ -43,7 +43,9 @@ Controller::Command Controller::InterpretCmd(const String cmd){
   if(cmd=="stop")return STOP; 
   if(cmd=="bwd")return BWD; 
   if(cmd=="left")return LEFT; 
-  if(cmd=="right")return RIGHT; 
+  if(cmd=="right")return RIGHT;
+  if(cmd=="left_ctrl")return LEFT_CTRL; 
+  if(cmd=="right_ctrl")return RIGHT_CTRL;  
   if(cmd=="up")return UP; 
   if(cmd=="down")return DOWN; 
   if(cmd=="ping")return PING;
@@ -56,10 +58,12 @@ void Controller::ExecCmd(const Command cmd){
   const char* log=NULL;
   bool result=false;
   uint8_t ids[2]={1,2};
-  int32_t fwd_data[2]={speedIncrement,speedIncrement};
-  int32_t rev_data[2]={-speedIncrement,-speedIncrement};
-  int32_t turn_right_data[2]={speedIncrement,-speedIncrement};
-  int32_t turn_left_data[2]={-speedIncrement,speedIncrement};
+  int32_t fwd_data[2]={speedIncrementStraight,speedIncrementStraight};
+  int32_t rev_data[2]={-speedIncrementStraight,-speedIncrementStraight};
+  int32_t turn_right_data[2]={speedIncrementTurn,-speedIncrementTurn};
+  int32_t turn_left_data[2]={-speedIncrementTurn,speedIncrementTurn};
+  int32_t turn_right_ctrl_data[2]={speedIncrementTurnActive,-speedIncrementTurnActive};
+  int32_t turn_left_ctrl_data[2]={-speedIncrementTurnActive,speedIncrementTurnActive};
   int32_t org_speed[2]={current_speed[0]/speed_factor,current_speed[1]/speed_factor};
   
   switch(cmd){
@@ -89,7 +93,17 @@ void Controller::ExecCmd(const Command cmd){
           current_speed[1]=speed_factor*turn_right_data[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
           break;
-      case UP:
+      case LEFT_CTRL:
+          current_speed[0]=speed_factor*turn_left_ctrl_data[0];
+          current_speed[1]=speed_factor*turn_left_ctrl_data[1];
+          result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
+          break;
+      case RIGHT_CTRL:
+          current_speed[0]=speed_factor*turn_right_ctrl_data[0];
+          current_speed[1]=speed_factor*turn_right_ctrl_data[1];
+          result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
+          break;
+      /*case UP:
           if((current_speed[0])&&(current_speed[0])&&((speed_factor+1)*speedIncrement<=maxSpeed)) speed_factor++;
           current_speed[0]=speed_factor*org_speed[0];
           current_speed[1]=speed_factor*org_speed[1];
@@ -100,7 +114,7 @@ void Controller::ExecCmd(const Command cmd){
           current_speed[0]=speed_factor*org_speed[0];
           current_speed[1]=speed_factor*org_speed[1];
           result=dxl.syncWrite(0, ids, 2, current_speed, 1, &log);
-          break;
+          break;*/
       case QUERY:
           SendData();
           break;
